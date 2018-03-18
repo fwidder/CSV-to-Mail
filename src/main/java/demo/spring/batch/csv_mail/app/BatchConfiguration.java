@@ -33,7 +33,7 @@ public class BatchConfiguration {
 	@Autowired
 	public StepBuilderFactory stepBuilderFactory;
 	
-	@Value("${spring.mail.username}")
+	@Value("${spring.mail.sender}")
 	private String sender;
 
 	@Value("${demo.batch.data}")
