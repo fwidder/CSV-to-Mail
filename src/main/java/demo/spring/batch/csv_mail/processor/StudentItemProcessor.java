@@ -19,42 +19,41 @@ import demo.spring.batch.csv_mail.model.Student;
 
 public class StudentItemProcessor implements ItemProcessor<Student, MimeMessage> {
 
-	private static final Logger log = LoggerFactory.getLogger(StudentItemProcessor.class);
+    private static Logger log = LoggerFactory.getLogger(StudentItemProcessor.class);
 
-	@Autowired
-	private JavaMailSender mailSender;
-	@Autowired
-	private VelocityEngine engine;
-	private String sender;
-	private String attachment;
-	
-	public StudentItemProcessor(String sender, String attachment) {
-		this.sender = sender;
-		this.attachment = attachment;
-	}
+    @Autowired
+    private JavaMailSender mailSender;
+    @Autowired
+    private VelocityEngine engine;
+    private String sender;
+    private String attachment;
 
-	@Override
-	public MimeMessage process(Student student) throws Exception {
-		MimeMessage message = mailSender.createMimeMessage();
-		
-		MimeMessageHelper helper = new MimeMessageHelper(message, true);
-		
-		Map<String, Object> model = new HashMap<>();
-		model.put("name", student.getFullname());
-		model.put("code", student.getCode());
-		helper.setFrom(sender);
-		helper.setTo(student.getEmail());
-		helper.setCc(sender);
-		helper.setSubject(VelocityEngineUtils.mergeTemplateIntoString(engine, "email-subject.vm", "UTF-8", model));
-		helper.setText(VelocityEngineUtils.mergeTemplateIntoString(engine, "email-body.vm", "UTF-8", model));
-		
-		log.info("Preparing message for: " + student.getEmail());
-		
-		FileSystemResource file = new FileSystemResource(attachment);
-		helper.addAttachment(file.getFilename(), file);
-		
-		return message;
-	}
+    public StudentItemProcessor(String sender, String attachment) {
+	this.sender = sender;
+	this.attachment = attachment;
+    }
 
-	
+    @Override
+    public MimeMessage process(Student student) throws Exception {
+	MimeMessage message = mailSender.createMimeMessage();
+
+	MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+	Map<String, Object> model = new HashMap<>();
+	model.put("name", student.getFullname());
+	model.put("code", student.getCode());
+	helper.setFrom(sender);
+	helper.setTo(student.getEmail());
+	helper.setCc(sender);
+	helper.setSubject(VelocityEngineUtils.mergeTemplateIntoString(engine, "email-subject.vm", "UTF-8", model));
+	helper.setText(VelocityEngineUtils.mergeTemplateIntoString(engine, "email-body.vm", "UTF-8", model));
+
+	StudentItemProcessor.log.info("Preparing message for: " + student.getEmail());
+
+	FileSystemResource file = new FileSystemResource(attachment);
+	helper.addAttachment(file.getFilename(), file);
+
+	return message;
+    }
+
 }

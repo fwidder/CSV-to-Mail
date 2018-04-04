@@ -10,14 +10,14 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 public class MailBatchItemWriter implements ItemWriter<MimeMessage> {
 
-	@Autowired
-	private JavaMailSender mailSender;
-	
-	@Override
-	public void write(List<? extends MimeMessage> messages) throws Exception {
-		
-		messages.stream().forEach((message)->mailSender.send(message));
-		
-	}
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Override
+    public void write(List<? extends MimeMessage> messages) throws Exception {
+
+	messages.stream().forEach((message) -> mailSender.send(message));
+
+    }
 
 }

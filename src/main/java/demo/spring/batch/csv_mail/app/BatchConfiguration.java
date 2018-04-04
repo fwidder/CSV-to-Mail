@@ -27,81 +27,79 @@ import demo.spring.batch.csv_mail.writer.MailBatchItemWriter;
 @EnableBatchProcessing
 public class BatchConfiguration {
 
-	@Autowired
-	public JobBuilderFactory jobBuilderFactory;
-	
-	@Autowired
-	public StepBuilderFactory stepBuilderFactory;
-	
-	@Value("${spring.mail.sender}")
-	private String sender;
+    @Autowired
+    public JobBuilderFactory jobBuilderFactory;
 
-	@Value("${demo.batch.data}")
-	public String data;
-	
-	@Value("${demo.batch.attachment}")
-	private String attachment;
-	
-	@Value("${demo.batch.notifications.email}")
-	private String email;
+    @Autowired
+    public StepBuilderFactory stepBuilderFactory;
 
-	// tag::readerwriterprocessor[]
-	@Bean
-	public FlatFileItemReader<Student> reader() {
-		FlatFileItemReader<Student> reader = new FlatFileItemReader<>();
-		reader.setResource(new FileSystemResource(data));
-		reader.setLinesToSkip(1);
-		reader.setLineMapper(new DefaultLineMapper<Student>() {{
-			setLineTokenizer(new DelimitedLineTokenizer() {{
-				setNames(new String[] {"fullname", "code", "email"} );
-			}});
-			setFieldSetMapper(new BeanWrapperFieldSetMapper<Student>(){{
-				setTargetType(Student.class);
-			}});
-		}});
-		return reader;
-	}
-	
-	@Bean
-	public StudentItemProcessor processor() {
-		return new StudentItemProcessor(sender, attachment);
-	}
-	
-	@Bean
-	public MailBatchItemWriter writer() {
-		MailBatchItemWriter writer = new MailBatchItemWriter();
-		return writer;
-	}
-	// end::readerwriterprocessor[]
-	
-	// tag::listener[]
+    @Value("${spring.mail.sender}")
+    private String sender;
+
+    @Value("${demo.batch.data}")
+    public String data;
+
+    @Value("${demo.batch.attachment}")
+    private String attachment;
+
+    @Value("${demo.batch.notifications.email}")
+    private String email;
+
+    // tag::jobstep[]
+    @Bean
+    public Job importUserJob() {
+	return jobBuilderFactory.get("importUserJob").incrementer(new RunIdIncrementer()).listener(listener())
+		.flow(step1()).end().build();
+    }
 
     @Bean
     public JobExecutionListener listener() {
-        return new JobCompletionNotificationListener(email);
+	return new JobCompletionNotificationListener(email);
+    }
+
+    @Bean
+    public StudentItemProcessor processor() {
+	return new StudentItemProcessor(sender, attachment);
+    }
+
+    // tag::listener[]
+
+    // tag::readerwriterprocessor[]
+    @Bean
+    public FlatFileItemReader<Student> reader() {
+	FlatFileItemReader<Student> reader = new FlatFileItemReader<>();
+	reader.setResource(new FileSystemResource(data));
+	reader.setLinesToSkip(1);
+	reader.setLineMapper(new DefaultLineMapper<Student>() {
+	    {
+		setLineTokenizer(new DelimitedLineTokenizer() {
+		    {
+			setNames(new String[] { "fullname", "code", "email" });
+		    }
+		});
+		setFieldSetMapper(new BeanWrapperFieldSetMapper<Student>() {
+		    {
+			setTargetType(Student.class);
+		    }
+		});
+	    }
+	});
+	return reader;
     }
 
     // end::listener[]
-    
- // tag::jobstep[]
-    @Bean
-    public Job importUserJob() {
-        return jobBuilderFactory.get("importUserJob")
-                .incrementer(new RunIdIncrementer())
-                .listener(listener())
-                .flow(step1())
-                .end()
-                .build();
-    }
 
     @Bean
     public Step step1() {
-        return stepBuilderFactory.get("step1")
-                .<Student, MimeMessage> chunk(10)
-                .reader(reader())
-                .processor(processor())
-                .writer(writer())
-                .build();
+	return stepBuilderFactory.get("step1").<Student, MimeMessage>chunk(10).reader(reader()).processor(processor())
+		.writer(writer()).build();
     }
     // end::jobstep[]
+
+    @Bean
+    public MailBatchItemWriter writer() {
+	MailBatchItemWriter writer = new MailBatchItemWriter();
+	return writer;
+    }
+    // end::readerwriterprocessor[]
 }

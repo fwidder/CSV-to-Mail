@@ -8,40 +8,40 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
 
-	@Autowired
-	private JavaMailSender mailSender;
-	
-	private String notificationEmail;
+    @Autowired
+    private JavaMailSender mailSender;
 
-	public JobCompletionNotificationListener(String notificationEmail) {
-		this.notificationEmail = notificationEmail;
-	}
-	
-	@Override
-	public void afterJob(JobExecution jobExecution) {
-		
-		SimpleMailMessage message = new SimpleMailMessage();
-		
-		message.setSubject("Job completion");
-		message.setFrom(notificationEmail);
-		message.setTo(notificationEmail);
-		message.setText("Job completed with " + jobExecution.getExitStatus());
+    private String notificationEmail;
 
-		mailSender.send(message);
-	}
+    public JobCompletionNotificationListener(String notificationEmail) {
+	this.notificationEmail = notificationEmail;
+    }
 
-	@Override
-	public void beforeJob(JobExecution jobExecution) {
-		
-		SimpleMailMessage message = new SimpleMailMessage();
-		
-		message.setSubject("Job started");
-		message.setFrom(notificationEmail);
-		message.setTo(notificationEmail);
-		message.setText("Job started");
+    @Override
+    public void afterJob(JobExecution jobExecution) {
 
-		mailSender.send(message);
+	SimpleMailMessage message = new SimpleMailMessage();
 
-	}
+	message.setSubject("Job completion");
+	message.setFrom(notificationEmail);
+	message.setTo(notificationEmail);
+	message.setText("Job completed with " + jobExecution.getExitStatus());
+
+	mailSender.send(message);
+    }
+
+    @Override
+    public void beforeJob(JobExecution jobExecution) {
+
+	SimpleMailMessage message = new SimpleMailMessage();
+
+	message.setSubject("Job started");
+	message.setFrom(notificationEmail);
+	message.setTo(notificationEmail);
+	message.setText("Job started");
+
+	mailSender.send(message);
+
+    }
 
 }
